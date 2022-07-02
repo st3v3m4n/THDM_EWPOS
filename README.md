@@ -1,15 +1,15 @@
-/**
 @mainpage Documentation for THDM_EWPOS
 
-@section Introduction
+Introduction
+============
 
 THDM_EWPOS is a Fortran-program for the evaluation of electroweak precision observables in the  Two-Higgs-doublet-model (THDM).
 It was developed during my PhD thesis at the [Max-Planck-Institute for Physic](https://www.mpp.mpg.de/) from December 2013 to January 2018.
 The currently included precision observables are:
 
-- the mass of the W boson, \f$M_W\f$, as  calculated from the muon decay,
-- the effective leptonic mixing angle, \f$\sin\theta^{lept}_{eff}\f$ at the \f$Z\f$ pole,
-- the total and partial widths of the \f$Z\f$ boson.
+- the mass of the W boson as  calculated from the muon decay,
+- the effective leptonic mixing angle at the Z pole,
+- the total and partial widths of the Z boson.
 
 The following higher-order corrections are incorporated:
 
@@ -44,7 +44,8 @@ If you are publishing results obtained with THDM_EWPOS please also cite the foll
 - ["Two-loop corrections to the ρ parameter in Two-Higgs-Doublet Models"](https://arxiv.org/abs/1607.04610) by Stephan Hessenberger and Wolfgang Hollik,
 - ["Two-Loop Corrections to Electroweak Precision Observables in Two-Higgs-Doublet-Models"](https://mediatum.ub.tum.de/1415546) by Stephan Hessenberger.
 
-@section Installation
+Installation
+============
 
 After unpacking the compressed tar archive THDM_EWPOS.tar.gz,
  there are a few adjustments that have to be made in the makefile,
@@ -74,7 +75,8 @@ After unpacking the compressed tar archive THDM_EWPOS.tar.gz,
  and a few example programs. In order to use the different subroutines in your own program,
  you have to link it to libEWPOTHDM.a.
 
-@section Documentation
+Documentation
+=============
 
  A documentation of the program can be build with the help of the tool
  [doxygen](http://www.stack.nl/~dimitri/doxygen/index.html).
@@ -112,7 +114,8 @@ After unpacking the compressed tar archive THDM_EWPOS.tar.gz,
 
  THDM_EWPOS/Literature/Manual.pdf
 
- @section Content
+ Content
+ =======
 
  After unpacking the compressed tar archive THDM_EWPOS.tar.gz, the following files and
  directorys should be present:
@@ -135,4 +138,3 @@ After unpacking the compressed tar archive THDM_EWPOS.tar.gz,
 
  - THDM_EWPOS/README.txt: instructions and mainpage of the documentation
 
-*/

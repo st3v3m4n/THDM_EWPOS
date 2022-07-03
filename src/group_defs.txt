@@ -1,0 +1,554 @@
+/**
+* @defgroup group_Input Inputparameter
+* @brief The following subroutines set the input-parameters
+* for the calculation of the electroweak precision observables
+* in the THDM. They are contained in the directory THDM_EWPOS/src/InputParameter.
+*
+* The parameters are defined in the header files paraSM.h and paraTHDM.h.
+* Since the input-parameters are stored in COMMON blocks, these header-files
+* have to be included in all the subroutines
+* and programs, which need the input-parameters.
+* The values for the SM parameters are set by calling the subroutine @ref setsmparameter.
+* This subroutine needs to be adjusted in case one of these parameters needs to be changed.
+*
+* The scalar potential of the THDM is usually parameterized by
+* (see for example \cite Branco:2011iw)
+*\f{align}{
+V\left(\Phi_1,\Phi_2\right)=&
+  m_{11}^2 \Phi_1^{\dagger } \Phi _1
+  +m_{22}^2 \Phi_2^{\dagger } \Phi_2
+  -\left(m_{12}^2 \Phi_1^{\dagger } \Phi_2+ \mathrm{h.c.}\right)\\
+  &+\frac{1}{2} \Lambda_1 \left(\Phi_1^{\dagger } \Phi_1\right){}^2
+  +\frac{1}{2} \Lambda_2 \left(\Phi_2^{\dagger } \Phi_2\right){}^2
+  +\Lambda_3 \left(\Phi_2^{\dagger } \Phi_2\right) \left(\Phi_1^{\dagger } \Phi_1\right)\\
+  &+\Lambda_4 \left(\Phi_1^{\dagger } \Phi_2\right) \left(\Phi_2^{\dagger } \Phi_1\right)
+  +\Bigg[\frac{1}{2} \Lambda_5 \left(\Phi_1^{\dagger } \Phi_2\right){}^2
+  + \left(\Lambda_6 \Phi_1^{\dagger } \Phi_1+\Lambda_7 \Phi_2^{\dagger } \Phi_2\right)\Phi_1^{\dagger } \Phi_2 +\mathrm{h.c.}\Bigg].
+\f}
+* We are assuming a CP-conserving potential in which all of the parameters are real.
+* If in addition a discrete \f$Z_2\f$ symmetry
+*\f[\Phi_1\rightarrow\Phi_1;\quad
+ \Phi_2\rightarrow-\Phi_2\f]
+* is imposed on the potential, the parameters \f$\Lambda_6\f$ and \f$\Lambda_7\f$
+* are set equal to zero to eliminate \f$Z_2\f$ breaking terms of mass dimension four.
+* To allow for a richer phenomenology of the model, the soft-violating terms
+* of mass dimension two are usually kept and \f$m_{12}^2\neq 0\f$.
+* In the so-called Inert-Higgs-doublet model (IHDM) also the \f$Z_2\f$-breaking
+* terms of mass-dimension two are forbidden and \f$m_{12}^2\f$ is also set to zero.
+*
+* We use the scalar masses and mixing angles as input parameters instead of the
+* original parameters of the potential.
+* The scalar masses of the THDM
+* (\f$\texttt{Mh0}=m_{h^0}\f$, \f$\texttt{MHH}=m_{H^0}\f$,
+* \f$\texttt{MA0}=m_{A^0}\f$ and \f$\texttt{MHp}=m_{H^\pm}\f$)
+* can be set manually as input-parameters before calling the subroutines for the
+* calculation of the precision observables.
+* Since the lighter of the two CP-even Higgs states is normally identified
+* with the scalar detected at the LHC,
+* the mass of \f$h^0\f$ is usually set to \f$m_{h^0}=125\mathrm{ GeV}\f$.
+* In addition, also the mixing angles \f$\alpha\f$ and \f$\beta\f$ enter as input
+* in form of \f$\texttt{SA}=\sin\alpha\f$ and \f$\texttt{TB}=\tan\beta\f$.
+*
+* The remaining input-parameter enter currently only in the non-standard scalar two-loop
+* corrections to the \f$\rho\f$ parameter.
+* The different subroutines which calculate these corrections
+* for different approximations take different
+* parameterizations for the input-parameters:
+* - The scalar two-loop corrections in the THDM without a hard \f$Z_2\f$-violation
+*  in the alignment limit are calculated by the subroutines @ref calcnshiggs2loop
+* and @ref calcmixhiggs2loop. In addition to the scalar masses and \f$\tan\beta\f$
+* these two subroutines use the parameter
+* \f[\texttt{Lambda5}=\lambda_5=\frac{2 m_{12}^2}{v^2 s_\beta c_\beta}\f]
+* as input. The parameter \f$\lambda_5\f$ is chosen instead of \f$m_{12}^2\f$
+* since the original THDM modelfile in FeynArts uses the parameterization of
+* the Higgs potential from \cite gunion:1990.
+* -  The scalar two-loop corrections in the THDM with hard \f$Z_2\f$-violating terms
+* (and without the alignment limit) are calculated in the subroutine
+* @ref calcallh2loop. In this subroutine the parameters
+*  \f$\texttt{m12sq}=m_{12}^2\f$, \f$\texttt{Lambda6}=\Lambda_6\f$
+*  and \f$\texttt{Lambda7}=\Lambda_7\f$ are needed as input,
+*   in addition to the scalar masses, \f$\tan\beta\f$
+* and \f$\sin\alpha\f$.
+* - The scalar two-loop corrections in the IHDM are calculated by the subroutine
+* @ref calcihdm2loop. In addition to the scalar masses, this subroutine needs
+* either \f$\texttt{mu2sq}=m_{22}^2\f$ or
+* \f[\texttt{L345}=\Lambda_{345}=\Lambda_3+\Lambda_4+\Lambda_5\f] as
+* input
+* (the specific input parameter is selected by defining the preprocessor variable
+* \f$\texttt{L345input}\f$ in paraTHDM.h).
+*/
+
+
+/**
+* @defgroup group_SECT SECT
+* @brief Functions for self-energies and counterterms.
+* They are contained in the directory THDM_EWPOS/src/SECT.
+*
+*/
+
+/**
+* @defgroup group_MW The W boson mass
+* @brief The following subroutines can be used to predict the W boson mass in the THDM.
+* They are contained in the directory THDM_EWPOS/src/MWCorrection.
+*
+* The decay of the muon allows to predict the mass of the W boson in terms of the mass of the Z boson \f$M_Z\f$,
+* the fine structure constant \f$\alpha_{em}\f$ and the Fermi-constant \f$G_F\f$.
+* The calculation of the \f$\mu\f$-decay in electroweak theories leads to the relation
+*\f[M_W^2 \left(1-\frac{M_W^2}{M_Z^2}\right)=\frac{\pi \alpha_{em}}{\sqrt{2} G_F}(1+\Delta r).\f]
+*The higher-order corrections are incorporated in the quantity \f$\Delta r\f$.
+*
+* The calculation of \f$M_W\f$ in the THDM is done by the subroutine
+* \ref calcmwthdm.
+* Since \f$\Delta r\f$ itself depends on \f$M_W\f$, the prediction of \f$M_W\f$ is obtained by evaluating
+*\f[ M_W^2=M_Z^2\left[\frac{1}{2}+\sqrt{\frac{1}{4}-\frac{\pi\alpha_{em}}{\sqrt{2}G_F M_Z^2}\left(1+\Delta r\right)}\right] \f]
+* iteratively.  The result for \f$\Delta r\f$ in the THDM can be written as
+* \f[\Delta r= \Delta r_\mathrm{SM} + \Delta r_\mathrm{NS},\f]
+*where \f$\Delta r_\mathrm{SM}\f$ contains all the known SM corrections and
+* \f$\Delta r_\mathrm{NS}\f$ contains the additional non-standard contributions.
+*
+*
+* The following two possible calculations are currently implemented for the SM corrections to \f$\Delta r\f$
+(see the description of the flag \b SMflag in the subroutine @ref calcmwthdm):
+* - The one-loop contribution to \f$\Delta r\f$ in the SM
+* is calculated in the subroutine \ref calcdrsm1loop
+* with an explicit dependence on \f$M_W\f$ for the iteration.
+* The higher-order contributions in the SM are approximated with the help of
+* the W boson mass in the SM with all available higher-order corrections,
+* \f$M_{W,\mathrm{SM}}\f$.
+* In [hep-ph/0311148](https://arxiv.org/abs/hep-ph/0311148)
+* a simple parameterization for \f$M_{W,SM}\f$ is given,
+* which is implemented in the subroutine \ref calcmwsmho.
+* After \ref calcmwsmho is executed, the higher-order SM contributions to
+*  \f$ \Delta r \f$, \f$\delta r^{\mathrm{h.o.}}_\mathrm{SM}\f$,
+* can be calculated by \ref calcdrsmho. However, the result for
+ \f$\delta r^{\mathrm{h.o.}}_\mathrm{SM}\f$
+* corresponds to the calculation with \f$M_W=M_{W,SM}\f$ and stays therefore
+* constant in the iteration. For more details see the description of
+* \ref calcdrsmho.
+*
+* - A complete result of the SM contribution \f$\Delta r_\mathrm{SM}\f$ with
+* all corrections that are currently available is implemented in the subroutine
+* @ref rnorm. In this implementation, the complete expression depends on \f$M_W\f$,
+* such that the full result takes part in the iteration.
+*
+*
+* The non-standard part \f$\Delta r_\mathrm{NS}\f$ is calculated by the subroutine
+* \ref calcdrns.
+* The following non-standard contributions are available for \f$\Delta r\f$:
+* - non-standard one-loop contribution:
+*      \f$\Delta r^{(1)}_\mathrm{NS},\f$
+* - reducible non-standard two-loop contributions:
+*      \f[\Delta r_\mathrm{NS,red}^{(2)}=-2\frac{c_W^2}{s_W^2}\Delta\alpha\Delta\rho^{(1)}_\mathrm{NS}+4\frac{c_W^4}{s_W^4}\Delta\rho^{(1)}_\mathrm{t}\Delta\rho^{(1)}_\mathrm{NS}+2\frac{c_W^4}{s_W^4}\left(\Delta\rho^{(1)}_\mathrm{NS}\right)^2,\f]
+* - two-loop contribution from the non-standard top-Yukawa contribution to the \f$\rho\f$ parameter
+* (calculated by the subroutine @ref calcnstop2loop):
+* \f[\Delta r^{(2)}_\mathrm{t,NS}=-\frac{c_W^2}{s_W^2}\delta\rho^{(2)}_\mathrm{t,NS},\f]
+* - two-loop contribution from the pure non-standard scalar contribution to the \f$\rho\f$ parameter
+* (calculated by the subroutine @ref calcnshiggs2loop):
+* \f[\Delta r^{(2)}_\mathrm{H,NS}=-\frac{c_W^2}{s_W^2}\delta\rho^{(2)}_\mathrm{H,NS},\f]
+* - two-loop contribution from the mixed scalar contribution to the \f$\rho\f$ parameter
+* (calculated by the subroutine @ref calcmixhiggs2loop):
+* \f[\Delta r^{(2)}_\mathrm{H,Mix}=-\frac{c_W^2}{s_W^2}\delta\rho^{(2)}_\mathrm{H,Mix},\f]
+* - non-standard two-loop contribution from the scalar contribution to the \f$\rho\f$ parameter in the IHDM
+* (calculated by the subroutine @ref calcihdm2loop):
+* \f[\Delta r^{(2)}_\mathrm{IHDM}=-\frac{c_W^2}{s_W^2}\delta\rho^{(2)}_\mathrm{IHDM},\f]
+* - complete scalar two-loop contribution to the \f$\rho\f$ parameter
+* (calculated by the subroutine @ref calcallh2loop)
+* \f[\Delta r^{(2)}_\mathrm{H}=-\frac{c_W^2}{s_W^2}\delta\rho^{(2)}_\mathrm{H}.\f]
+*
+*/
+
+/**
+*@defgroup group_rho The rho parameter
+*@brief The following subroutines calculate the corrections to the \f$\rho\f$ parameter in the THDM.
+* They are contained in the directory THDM_EWPOS/src/Deltarho.
+*
+* Most of the available non-standard contributions are calculated in the alignment limit,
+* in which the lighter of the CP-even scalars, \f$h^0\f$, is identified with the 125 GeV Higgs boson.
+* The CP-even mixing angle is set to \f$\alpha=\beta-\frac{\pi}{2}\f$, such
+* that \f$h^0\f$ has couplings to the gauge bosons and fermions which are identical
+* to the corresponding couplings of the Higgs boson in the SM.
+* Only the complete scalar contribution \f$\delta\rho^{(2)}_\mathrm{H}\f$ is calculated
+* with \f$\alpha\neq\beta-\frac{\pi}{2}\f$ in the subroutine @ref calcallh2loop.
+*
+* The calculation of the different contributions was done in Mathematica with the help
+* of the programmes [FeynArts](http://www.feynarts.de/), [FormCalc](http://www.feynarts.de/formcalc/)
+* and [TwoCalc](https://arxiv.org/abs/hep-ph/9310358).
+* For the only scalar two-loop integral \f$T_{134}\f$, which appears in the two-loop corrections,
+* the implementation from [FeynHiggs](http://www.feynhiggs.de/) is used for the numerical evaluation.
+*
+* At the moment, the following corrections to the \f$\rho\f$ parameter are available:
+*
+* - the subroutine \ref calcdrhotop1l contains \f$\Delta\rho^{(1)}_\mathrm{t}\f$, the one-loop correction
+* from the top-Yukawa coupling
+* (the contribution from the bottom-Yukawa coupling is neglected by setting \f$m_b=0\f$);
+*
+* - the subroutine \ref calcdrhons1l contains \f$\Delta\rho^{(1)}_\mathrm{NS}\f$, the non-standard one-loop
+* correction from the extended scalar sector;
+*
+* - the subroutine \ref calcnstop2loop contains \f$\delta\rho^{(2)}_\mathrm{t,NS}\f$,
+* the non-standard two-loop contribution from the top-Yukawa interaction in the alignment limit
+* (the contribution from the bottom-Yukawa coupling is neglected by setting \f$m_b=0\f$);
+*
+* - the subroutine \ref calcnstb2loop contains \f$\delta\rho^{(2)}_\mathrm{tb,NS}\f$,
+* the non-standard two-loop contribution from the top- and bottom-Yukawa interaction in the alignment limit
+* (with a finite bottom quark mass \f$m_b\neq0\f$).
+*
+* - the subroutine \ref calcnshiggs2loop contains \f$\delta \rho^{(2)}_\mathrm{H,NS}\f$,
+* the two-loop correction in the alignment limit from the interaction between the non-standard scalars
+* \f$H^0\f$, \f$A^0\f$ and \f$H^\pm\f$;
+*
+* - the subroutine \ref calcmixhiggs2loop contains \f$\delta \rho^{(2)}_\mathrm{H,Mix}\f$,
+* the two-loop correction in the alignment limit from the interaction between the SM-like scalars
+* \f$h^0\f$, \f$G^0\f$, \f$G^\pm\f$ and the non-standard scalars
+* \f$H^0\f$, \f$A^0\f$ and \f$H^\pm\f$;
+*
+* - the subroutine \ref calcihdm2loop contains \f$\delta \rho^{(2)}_\mathrm{IHDM}\f$,
+* the non-standard two-loop correction in the IHDM;
+*
+* - the subroutine \ref calcallh2loop contains \f$\delta \rho^{(2)}_\mathrm{H}\f$,
+* the scalar two-loop correction in the general THDM without taking the alignment limit.
+*
+* Details about the different contributions and their calculation can be found in
+* \cite Hessenberger:2016.
+*
+*
+*/
+
+/**
+*@defgroup group_loopint Loop-integrals
+*
+*@brief The following loop-integrals are needed for the
+* numerical evaluation of the two-loop corrections to the \f$\rho\f$ parameter.
+*They are contained in the directory THDM_EWPOS/src/Deltarho/LT.
+*
+* The implementations are taken from the program [FeynHiggs](http://www.feynhiggs.de/).
+*
+*/
+
+/**
+*@defgroup group_Zwidths Partial and total widths of the Z boson
+*
+* @brief Functions and subroutines for the calculation of the partial and total
+* widths of the Z boson
+* in the THDM. They are contained in the directory THDM_EWPOS/src/Zwidths.
+*
+*The total width \f$\Gamma_Z\f$ of the Z boson is obtained from the sum
+* of all partial widths \f$\Gamma_f\equiv\Gamma\left(Z\rightarrow f\overline{f}\right)\f$
+* \cite Bardin:1997xq,
+*\f[\Gamma_Z=\sum_{f\neq t}\Gamma_f=3\Gamma_\nu+\Gamma_e+\Gamma_\mu+\Gamma_\tau+\Gamma_\mathrm{had},\f]
+*with the hadronic width given by the decay into quark pairs
+*\f[\Gamma_\mathrm{had}=\Gamma_u+\Gamma_d+\Gamma_c+\Gamma_s+\Gamma_b.\f]
+*The partial widths are all described in terms of effective coupling \f$g^f_{V,A}\f$ by
+*\f[\Gamma_f=\Gamma_0 N_c^f\left[\left(g^f_V\right)^2R^f_V+\left(g^f_A\right)^2R^f_A\right]\f]
+*or alternatively in terms of form factors \f$\rho_f\f$ and \f$\kappa_f\f$ by
+*\f[\Gamma_f=\Gamma_0 N_c^f\rho_f\left[\left(I_3^f-2 Q_f s_W^2 \kappa_f\right)^2 R^f_V+ \left(I_3^f\right)^2R^f_A\right].\f]
+*\f$N_c^f\f$ is a colour factor, such that \f$N_c^f=1\f$ for leptons
+* and \f$N_c^f=3\f$ for quarks.
+*The normalization factor \f$\Gamma_0\f$ is written as
+*\f[\Gamma_0=\frac{G_F M_Z^3}{6\sqrt{2}\pi}.\f]
+*The final-state QED and QCD corrections are incorporated into
+* factorized radiation factors \f$R^f_{V,A}\f$,
+* which are calculated by the subroutine @ref calcrfactors.
+* The electroweak corrections are included either in the effective couplings
+*  \f$g^f_{V,A}\f$ or in the form factors \f$\rho_f\f$ and \f$\kappa_f\f$.
+*
+*The effective couplings at the one-loop order are separated into a standard and
+* a non-standard part
+*\f[
+\begin{aligned}
+g^f_V=& v_f+\Delta^{(1)} g^f_{V,\mathrm{SM}}+\Delta^{(1)} g^f_{V,\mathrm{NS}},\\
+g^f_A=& a_f+ \Delta^{(1)} g^f_{A,\mathrm{SM}}+\Delta^{(1)} g^f_{A,\mathrm{NS}}.
+\end{aligned}
+\f]
+*
+* The tree-level vector couplings of the Z boson to a fermion species f are given by
+* \f[v_f=I_3^f-2s_W^2Q_f,\f]
+* with the third isospin component \f$I_3^f\f$ and the electric charge \f$Q_f\f$.
+* The corresponding tree-level axial-vector coupling is given by
+* \f[a_f=I_3^f.\f]
+*These tree-level couplngs are set by the subroutine @ref settreecouplings.
+*
+*The one-loop SM corrections to the effective couplings are given by
+*\f[
+ \begin{aligned}
+ \Delta^{(1)} g_{V,\mathrm{SM}}^f=&v_f\left\{-\frac{1}{2}\Delta r^{(1)}_\mathrm{SM}
+ +\frac{1}{2}\delta^{(1)}Z_{ZZ}^\mathrm{SM}+\delta^{(1)}Z_e^\mathrm{SM}
+ +\frac{1}{2}\frac{s_W^2-c_W^2}{s_W^2}\frac{\delta s_{W,\mathrm{SM}}^2}{s_W^2}\right\}\\
+ &+2s_Wc_WQ_f\left\{\frac{1}{2}\delta^{(1)} Z{\gamma Z}^\mathrm{SM}-\frac{c_W}{s_W}\frac{\delta s_{W,\mathrm{SM}}^2}{s_W^2}\right\}
+ +F_{V,\mathrm{SM}}^{f}\left(M_Z^2\right),\\
+ \Delta^{(1)} g_{A,\mathrm{SM}}^f=&a_f\left\{-\frac{1}{2}\Delta r^{(1)}_\mathrm{SM}+\frac{1}{2}\delta^{(1)} Z_{ZZ}^\mathrm{SM}
+ +\delta^{(1)} Z_e^\mathrm{SM}
+ +\frac{1}{2}\frac{s_W^2-c_W^2}{s_W^2}\frac{\delta s_{W,\mathrm{SM}}^2}{s_W^2}\right\}\\
+ &+F_{A,\mathrm{SM}}^{f}\left(M_Z^2\right),
+ \end{aligned}
+\f]
+where the index on the counterterms indicate that only SM contributions are considered.
+* The form-factors \f$F_{V,A}^{f}\f$ contain the non-photonic vertex corrections together with the
+* field renormalization of the external fermions.
+* The index indicates again that only SM contributions are considered.
+*The one-loop SM corrections to the effective vector couplings are
+* calculated by the subroutine @ref calcdelgvsm1l
+* and the corresponding corrections to the effective axial-vector couplings
+* are calculated by the subroutine @ref calcdelgasm1l.
+*
+*
+*The non-standard one-loop corrections are
+*\f[
+\begin{aligned}
+\Delta^{(1)} g_{V,\mathrm{NS}}^f=&v_f\left\{-\frac{1}{2}\Delta r^{(1)}_\mathrm{NS}
++\frac{1}{2}\delta^{(1)}Z_{ZZ}^\mathrm{NS}+\delta^{(1)}Z_e^\mathrm{NS}
++\frac{1}{2}\frac{s_W^2-c_W^2}{s_W^2}\frac{\delta s_{W,\mathrm{NS}}^2}{s_W^2}\right\}
+\\
+&+2s_Wc_WQ_f\left\{\frac{1}{2}\delta^{(1)}Z_{\gamma Z}^\mathrm{NS}
+-\frac{c_W}{s_W}\frac{\delta s_{W,\mathrm{NS}}^2}{s_W^2}\right\}+F_{V,\mathrm{NS}}^{f}\left(M_Z^2\right),\\
+\Delta^{(1)} g_{A,\mathrm{NS}}^f=& a_f\left\{-\frac{1}{2}\Delta r^{(1)}_\mathrm{NS}
++\frac{1}{2}\delta^{(1)} Z_{ZZ}^\mathrm{NS}+\delta^{(1)}Z_e^\mathrm{NS}
++\frac{1}{2}\frac{s_W^2-c_W^2}{s_W^2}\frac{\delta s_{W,\mathrm{NS}}^2}{s_W^2}\right\}
+\\
+&+F_{A,\mathrm{NS}}^{f}\left(M_Z^2\right)
+\end{aligned}
+\f]
+* where the indices on the counterterms and the form-factor
+* indicate that only the non-standard corrections from the extended scalar sector are considered.
+* The non-standard one-loop corrections to the effective couplings
+*for the
+* general THDM
+* are calculated by the subroutine @ref calcthdmcouplings1l.
+* Due to the small Yuakawa couplings,
+* the non-standard correction to the form-factors \f$F_{V,A}^{f}\f$
+*  are needed only for \f$f=b\f$.
+* The non-standard one-loop corrections to the effective couplings
+* for the IHDM
+* are calculated by the subroutine @ref calcihdmcouplings1l.
+* Note that no non-standard corrections
+* to the form-factors \f$F_{V,A}^{f}\f$ exist in the IHDM.
+*
+*The partial widths in the THDM
+*\f[
+ \Gamma_f=\Gamma_{f,\mathrm{SM}}+\Delta\Gamma_{f,\mathrm{NS}}
+\f]
+* are obtained by the subroutine @ref calczwidthsthdm.
+* Internally, the calculation is divided into
+* the SM part \f$\Gamma_{f,\mathrm{SM}}\f$
+* and the non-standard part \f$\Delta\Gamma_{f,\mathrm{NS}}\f$.
+*
+* The standard part
+*\f[
+\Gamma_{f,\mathrm{SM}}=\Gamma^{(1)}_{f,\mathrm{SM}}\left(M_W\right)+\Delta\Gamma^\mathrm{(h.o)}_{f,\mathrm{SM}}.
+\f]
+*consists of the one-loop part \f$\Gamma^{(1)}_{f,\mathrm{SM}}\f$ with an explicit dependence on \f$M_W\f$
+* (which is calculated by the subroutine @ref calczwidthssm1loop)
+*and \f$\Delta\Gamma^\mathrm{(h.o.)}_{f,\mathrm{SM}}\f$,
+* an approximation of the higher-order corrections in the SM for \f$M_W=M_{W,\mathrm{SM}}\f$
+* (which is calculated by the subroutine @ref calczwidthssmho).
+*
+* The non-standard part
+*\f[
+ \Delta\Gamma_{f,\mathrm{NS}}=\Delta^{(1)}\Gamma^f_\mathrm{NS}+\Delta^{(2)}\Gamma^f_\mathrm{NS}
+\f]
+*includes the complete non-standard one-loop part \f$\Delta^{(1)}\Gamma^f_\mathrm{NS}\f$,
+** as well as the leading two-loop contributions in \f$\Delta^{(2)}\Gamma^f_\mathrm{NS}\f$.
+*
+* The one-loop non-standard part
+*\f[
+\Delta^{(1)}\Gamma^f_\mathrm{NS}=N_C^f \Gamma_0 \left[2 v_f \Delta^{(1)} g^f_{V,\mathrm{NS}}R_V^f+ 2 a_f \Delta^{(1)} g^f_{A,\mathrm{NS}} R_A^f\right]
+\f]
+* is calculated in terms of the non-standard one-loop corrections
+* \f$\Delta^{(1)} g^f_{A,\mathrm{NS}}\f$
+* and \f$\Delta^{(1)} g^f_{V,\mathrm{NS}}\f$.
+*
+*These one-loop non-standard corrections are complemented with the two-loop corrections
+* from the \f$\rho\f$ parameter.
+*  These contributions are incorporated with the expansion
+*  of the form factors \f$\rho_f\f$ and \f$\kappa_f\f$ and the quantity
+*\f[
+ \Gamma^{(0)}_f=N_c^f\Gamma_0\left[v_f^2 R_V^f+a_f^2 R_A^f\right],
+\f]
+* which is calculated in @ref calczwidthstree.
+*The two-loop corrections
+*\f[
+ \Delta^{(2)}\Gamma^f_\mathrm{NS}=\Delta^{(2)}\Gamma^f_\mathrm{NS,red}+\Delta^{(2)}\Gamma^f_\mathrm{NS,irr},
+\f]
+* contain a reducible part \f$\Delta^{(2)}\Gamma^f_\mathrm{NS,red}\f$
+* with the products of \f$\Delta\alpha\f$ and \f$\Delta\rho^{(1)}\f$
+*as well as a irreducible part \f$\Delta^{(2)}\Gamma^f_\mathrm{NS,irr}\f$
+*with the irreducible two-loop correction to the \f$\rho\f$ parameter, \f$\delta\rho^{(2)}\f$.
+*
+*The reducible part
+*\f[
+\begin{aligned}
+ \Delta^{(2)}\Gamma^f_\mathrm{NS,red}=&\Gamma^{(0)}_f\left[\Delta\alpha\Delta\rho^{(1)}_\mathrm{NS}+\left(1-\frac{c_W^2}{s_W^2}\right)\left(2\Delta\rho^{(1)}_\mathrm{t}\delta\rho^{(1)}_\mathrm{NS}+\left(\Delta\rho^{(1)}_\mathrm{NS}\right)^2\right)\right]\\
+ &-4\Gamma_0 N_c^f s_W^2 Q_f v_f R^f_V \left[\Delta\alpha\frac{c_W^2}{s_W^2}\Delta\rho^{(1)}_\mathrm{NS}-\frac{c_W^4}{s_W^4}\left(2\Delta\rho^{(1)}_\mathrm{t}\Delta\rho^{(1)}_\mathrm{NS}+\left(\Delta\rho^{(1)}_\mathrm{NS}\right)^2\right)\right]\\
+ &+4\Gamma_0 N_c^f c_W^2 Q_f R^f_V\left(c_W^2 Q_f - v_f \right)\left[2 \Delta\rho^{(1)}_\mathrm{t} \Delta\rho^{(1)}_\mathrm{NS}+\left(\Delta\rho^{(1)}_\mathrm{NS}\right)^2\right]
+ \end{aligned}
+\f]
+* contains  factorized terms
+* of the light fermion contribution \f$\Delta\alpha\f$,
+* (which is set by the subroutine @ref setsmparameter)
+* the one-loop top-Yukawa correction \f$\Delta\rho^{(1)}_\mathrm{t}\f$
+* (which is calculated in the subroutine @ref calcdrhotop1l),
+* and the non-standard correction \f$\Delta\rho^{(1)}_\mathrm{NS}\f$
+* (which is calculated by the subroutine @ref calcdrhons1l).
+*
+*The irreducible part \f$\Delta^{(2)}\Gamma^f_\mathrm{NS,irr}\f$
+* contains the irreducible two-loop corrections to the \f$\rho\f$ parameter.
+* The following non-standard
+*contributions to the partial widths are contained in the aligned THDM:
+* - the non-standard two-loop top-Yukawa corrections
+* \f[
+ \Delta^{(2)}\Gamma^f_\mathrm{t,NS}=\Gamma^{(0)}_f\delta\rho^{(2)}_\mathrm{t,NS}-4\Gamma_0 N_c^f Q_f v_f R^f_V c_W^2 \delta\rho^{(2)}_\mathrm{t,NS},
+ \f]
+* - the pure non-standard scalar two-loop corrections
+*  \f[
+  \Delta^{(2)}\Gamma^f_\mathrm{H,NS}=\Gamma^{(0)}_f\delta\rho^{(2)}_\mathrm{H,NS}-4\Gamma_0 N_c^f Q_f v_f R^f_V c_W^2 \delta\rho^{(2)}_\mathrm{H,NS},
+ \f]
+* - the mixed non-standard scalar corrections
+*  \f[
+  \Delta^{(2)}\Gamma^f_\mathrm{H,Mix}=\Gamma^{(0)}_f\delta\rho^{(2)}_\mathrm{H,Mix}-4\Gamma_0 N_c^f Q_f v_f R^f_V c_W^2 \delta\rho^{(2)}_\mathrm{H,Mix}.
+ \f]
+*
+*The total irreducible two-loop part \f$\Delta^{(2)}\Gamma^f_\mathrm{NS,irr}\f$
+* in the aligned THDM is given by the sum
+*\f[
+\Delta^{(2)}\Gamma^f_\mathrm{NS,irr}=\Delta^{(2)}\Gamma^f_\mathrm{t,NS}+\Delta^{(2)}\Gamma^f_\mathrm{H,NS}+\Delta^{(2)}\Gamma^f_\mathrm{H,Mix}.
+\f]
+*
+*The reducible part  in the IHDM is identical to \f$\Delta^{(2)}\Gamma^f_\mathrm{NS,red}\f$ from the THDM in the alignment limit.
+*Differences arise in the irreducible part, since
+* there exists only one irreducible two-loop contribution \f$\delta\rho^{(2)}_\mathrm{IHDM}\f$ to the \f$\rho\f$ parameter in the IHDM. The corresponding correction to the partial widths is given by
+*  \f[
+  \Delta^{(2)}\Gamma^f_\mathrm{IHDM}=\Gamma^{(0)}_f\delta\rho^{(2)}_\mathrm{IHDM}-4\Gamma_0 N_c^f Q_f v_f R^f_V c_W^2 \delta\rho^{(2)}_\mathrm{IHDM}.
+ \f]
+**/
+
+/**
+*@defgroup group_mixangles Effective leptonic mixing angle
+*
+* @brief Functions and subroutines for the calculation of the effective mixing angles of
+* the leptons in the THDM. They are contained in the directory THDM_EWPOS/src/MixingAngles.
+*
+*The effective mixing angles are commonly used to parameterize the ratio of the effective couplings via
+*
+*\f[
+\sin^2\theta^f_\mathrm{eff}= s^2_f\equiv\frac{1}{4\left|Q_f\right|}\left(1-\frac{g^f_V}{g^f_A}\right)=s_W^2\kappa^f.
+\f]
+*Assuming lepton universality and separating off lepton mass effects, a common leptonic mixing angle,
+*\f[
+s_l^2=\sin^2\theta^{l}_\mathrm{eff}\equiv s_W^2\kappa=s_W^2\left(1+\Delta\kappa\right),
+\f]
+*is defined.
+*
+*At the tree-level the effective couplings are given by the tree-level coupling
+* \f$v_l\f$ and \f$a_l\f$ and the effective leptonic mixing angle is identical to the on-shell mixing angle \f$s_W^2\f$,
+*\f[
+ s_l^2=s_W^2=\frac{1}{4}\left(1-\frac{v_l}{a_l}\right).
+\f]
+*The higher-order corrections are conventionally absorbed in the quantity \f$\Delta\kappa\f$.
+*For example the one-loop contribution is
+*\f[
+\Delta\kappa^{(1)}=-\frac{1}{2}\frac{s_W}{c_W}\delta^{(1)}Z_{AZ}
++\frac{\delta^{(1)}s_W^2}{s_W^2}
++\frac{v_l}{v_l-a_l}\left(\frac{F_V^{l}\left(M_Z^2\right)}{v_l}-\frac{F_A^{l}\left(M_Z^2\right)}{a_l}\right).
+\f]
+* The form-factors \f$F^l_{V,A}\f$ contain the vertex-corrections as well as the
+* field renormalization of the leptons.
+* Additional corrections of the effective mixing angle
+* are contained in the on-shell weak-mixing angle \f$s_W^2\f$,
+* since it is calculated from the prediction of \f$M_W\f$ in terms of the Fermi-constant \f$G_F\f$.
+*
+*The effective leptonic mixing angle in the THDM receives non-standard contributions in two ways.
+*The on-shell weak mixing angle \f$s_W^2\f$ depends on the THDM parameters since it is calculated from the prediction of \f$M_W\f$ in the THDM.
+*In addition there exist also explicit non-standard contributions to the quantity \f$\Delta\kappa\f$.
+*We write \f$\Delta\kappa\f$ as
+*\f[
+ \Delta\kappa=\Delta\kappa_\mathrm{SM} +\Delta\kappa_\mathrm{NS},
+\f]
+*with a SM-like part \f$\Delta\kappa_\mathrm{SM}\f$ and a non-standard part \f$\Delta\kappa_\mathrm{NS}\f$.
+*
+*The SM part of \f$\Delta\kappa\f$
+*\f[
+ \Delta\kappa_\mathrm{SM}=\Delta\kappa_\mathrm{SM}^{(1)}\left(M_W\right)+\delta\kappa_\mathrm{SM}^{(\mathrm{h.o.})},
+\f]
+* is divided into the one-loop SM contribution \f$\Delta\kappa_\mathrm{SM}^{(1)}\f$
+*( with an explicit \f$M_W\f$ dependence) and an approximation of the higher-order corrections
+* (with fixed \f$M_W=M_{W,\mathrm{SM}}\f$).
+* The one-loop contribution \f$\Delta\kappa_\mathrm{SM}^{(1)}\f$ is calculated
+* by the subroutine @ref calcdelksm1loop.
+* The higher-order contribution \f$\delta\kappa_\mathrm{SM}^{(\mathrm{h.o.})}\f$
+* is calculated by the subroutine @ref calcdelksmho.
+*
+*The non-standard part
+*\f[
+ \Delta\kappa_\mathrm{NS}=\Delta\kappa_\mathrm{NS}^{(1)}+\Delta\kappa_\mathrm{NS}^{(2)}
+\f]
+*contains the non-standard one-loop contribution \f$\Delta\kappa_\mathrm{NS}^{(1)}\f$ and the leading two-loop contribution
+* \f$\Delta\kappa_\mathrm{NS}^{(2)}\f$.
+* The one-loop non-standard correction to \f$\Delta\kappa\f$ is given by
+*\f[
+ \Delta\kappa_\mathrm{NS}^{(1)}=-\frac{1}{2}\frac{s_W}{c_W}\delta^{(1)}Z_{\gamma Z}^{\mathrm{NS}}+\frac{\delta^{(1)}s^2_{W,\mathrm{NS}}}{s_W^2}.
+\f]
+The index on the counterterm indicates that only the non-standard part of the self-energies are used in the renormalization conditions.
+*The vertex corrections and the corrections to the lepton self-energies from the non-standard scalars are suppressed due to the small Yukawa couplings of the leptons.
+* Consequently, we neglect the non-standard contributions to the form-factors \f$F^{(l)}_{V,A}\f$.
+*
+*The non-standard two-loop part \f$\Delta\kappa_\mathrm{NS}^{(2)}\f$ incorporates the leading two-loop corrections to the \f$\rho\f$ parameter from the top-Yukawa coupling and the scalar self-interaction.
+*
+*The non-standard two-loop part \f$\Delta\kappa_\mathrm{NS}^{(2)}\f$ can be written as
+*\f[
+\Delta\kappa_\mathrm{NS}^{(2)}=\Delta\kappa_\mathrm{NS,red}^{(2)}+\Delta\kappa_\mathrm{NS,irr}^{(2)}.
+\f]
+*
+*
+* The non-standard reducible part
+*\f[
+ \Delta\kappa_\mathrm{NS,red}^{(2)}=\Delta\alpha\frac{c_W^2}{s_W^2}\Delta\rho^{(1)}_\mathrm{NS}-\frac{c_W^4}{s_W^4}\left(2\Delta\rho_\mathrm{t}^{(1)}\Delta\rho^{(1)}_\mathrm{NS}+\left(\Delta\rho^{(1)}_\mathrm{NS}\right)^2\right).
+\f]
+* contains  factorized terms
+* of the light fermion contribution \f$\Delta\alpha\f$,
+* (which is set by the subroutine @ref setsmparameter)
+* the one-loop top-Yukawa correction \f$\Delta\rho^{(1)}_\mathrm{t}\f$
+* (which is calculated in the subroutine @ref calcdrhotop1l),
+* and the non-standard correction \f$\Delta\rho^{(1)}_\mathrm{NS}\f$
+* (which is calculated by the subroutine @ref calcdrhons1l).
+*The irreducible part \f$\Delta\kappa_\mathrm{NS,irr}^{(2)}\f$ incorporates the terms which contain \f$\delta\rho^{(2)}\f$.
+*The non-standard part of \f$\delta\rho^{(2)}\f$ is divided in the different finite contributions, which lead to the following irreducible two-loop corrections to \f$\kappa\f$:
+* - the contribution from the non-standard top-Yukawa correction
+* \f[
+  \Delta\kappa_\mathrm{t,NS}^{(2)}=\frac{c_W^2}{s_W^2}\delta\rho^{(2)}_\mathrm{t,NS},
+ \f]
+* - the contribution from the pure non-standard scalar corrections
+* \f[
+  \Delta\kappa_\mathrm{H,NS}^{(2)}=\frac{c_W^2}{s_W^2}\delta\rho^{(2)}_\mathrm{H,NS},
+ \f]
+* - the contribution from the mixed scalar corrections
+* \f[
+ \Delta\kappa_\mathrm{H,Mix}^{(2)}=\frac{c_W^2}{s_W^2}\delta\rho^{(2)}_\mathrm{H,Mix}.
+ \f]
+*The total irreducible non-standard part is then given by
+*\f[
+ \Delta\kappa_\mathrm{NS,irr}^{(2)}=\Delta\kappa_\mathrm{t,NS}^{(2)}+\Delta\kappa_\mathrm{H,NS}^{(2)}+\Delta\kappa_\mathrm{H,Mix}^{(2)}.
+\f]
+*
+*
+*The reducible part \f$\Delta\kappa_\mathrm{NS,red}^{(2)}\f$ is identical in the IHDM and the THDM in the alignment limit.
+*Differences arise however in the irreducible part, since there exists just  one irreducible non-standard two-loop correction to the \f$\rho\f$ parameter in the IHDM, which is denoted by \f$\delta\rho^{(2)}_\mathrm{IHDM}\f$.
+* The corresponding contribution to \f$\Delta\kappa\f$ is
+*\f[
+ \Delta\kappa_\mathrm{IHDM}^{(2)}=\frac{c_W^2}{s_W^2}\delta\rho^{(2)}_\mathrm{IHDM}.
+\f]
+*
+*
+*With these non-standard corrections, the prediction of the effective leptonic mixing angle is given by
+*\f[
+ s^2_{l}=\left(1-\frac{M_W^2}{M_Z^2}\right)\left(1+\Delta\kappa_\mathrm{SM}^{(1)}+\delta\kappa^\mathrm{(h.o)}_\mathrm{SM}+\Delta\kappa_\mathrm{NS}^{(1)}+\Delta\kappa^{(2)}_\mathrm{NS}\right)
+\f]
+*with
+*\f[
+ \Delta\kappa_\mathrm{NS}^{(2)}=\Delta\kappa_\mathrm{NS,red}^{(2)}+\Delta\kappa_\mathrm{t,NS}^{(2)}+\Delta\kappa_\mathrm{H,NS}^{(2)}+\Delta\kappa_\mathrm{H,Mix}^{(2)}
+\f]
+*in the aligned THDM and
+*\f[
+ \Delta\kappa_\mathrm{NS}^{(2)}=\Delta\kappa_\mathrm{NS,red}^{(2)}+\Delta\kappa_\mathrm{IHDM}^{(2)}
+\f]
+*in the IHDM.
+*/

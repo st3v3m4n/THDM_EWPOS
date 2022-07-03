@@ -1,0 +1,12 @@
+*.a
+*.o
+*.bin
+
+.DS_Store
+
+executables/Math_exec/*.bin
+executables/*
+!executables/*.F
+!executables/*/makefile
+Doc/*
+Literature/Manual.pdf

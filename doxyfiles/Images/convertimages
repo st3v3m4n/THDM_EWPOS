@@ -1,0 +1,6 @@
+#! /bin/sh -x
+
+pdf2ps $1.pdf
+ps2eps $1.ps
+rm $1.ps
+convert -density 150 $1.pdf -quality 90 $1.png

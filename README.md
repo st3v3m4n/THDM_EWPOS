@@ -14,8 +14,8 @@ The currently included precision observables are:
 The following higher-order corrections are incorporated:
 
 - a complete one-loop calculation (the SM-like contribution as well as non-standard scalar contributions),
-- the non-standard two-loop top-Yukawa corrections to the \f$\rho\f$ parameter,
-- the non-standard two-loop corrections to the \f$\rho\f$ parameter from the scalar self-interaction,
+- the non-standard two-loop top-Yukawa corrections to the ρ parameter,
+- the non-standard two-loop corrections to the ρ parameter from the scalar self-interaction,
 - the known higher-order corrections from the Standard Model (SM).
 
 The one-loop contributions were calculated using the Mathematica programs [FeynArts](http://www.feynarts.de/) and [FormCalc](http://www.feynarts.de/formcalc/),
@@ -39,10 +39,17 @@ If you are publishing results obtained with THDM_EWPOS please also cite the foll
 The whole structure of THDM_EWPOS is heavily inspired by the Fortran routines from [FormCalc](http://www.feynarts.de/formcalc/).
 Especially the definition of the input parameter was adapted directly from these Fortran routines.
 
+THDM_EWPOS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+THDM_EWPOS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with THDM_EWPOS. If not, see <https://www.gnu.org/licenses/>. 
+
 If you are publishing results obtained with THDM_EWPOS please also cite the following literature
 
 - ["Two-loop corrections to the ρ parameter in Two-Higgs-Doublet Models"](https://arxiv.org/abs/1607.04610) by Stephan Hessenberger and Wolfgang Hollik,
 - ["Two-Loop Corrections to Electroweak Precision Observables in Two-Higgs-Doublet-Models"](https://mediatum.ub.tum.de/1415546) by Stephan Hessenberger.
+- Two-loop improved predictions for MW and the effective leptonic mixing angle in Two-Higgs-doublet-models by Stephan Hessenberger and Wolfgang Hollik
 
 Installation
 ============
@@ -110,9 +117,6 @@ Documentation
 
  in the main directory.
 
- A compiled version of the documentation is also contained in
-
- THDM_EWPOS/Literature/Manual.pdf
 
  Content
  =======
@@ -127,14 +131,11 @@ Documentation
  - THDM_EWPOS/include/: directory for the header files, which contain the
  definitions of the input parameters and of the counterterms.
 
- - THDM_EWPOS/Literature/: contains background literature for the calculation of the
- electroweak precision observables in the THDM
-
  - THDM_EWPOS/doxyfiles/: contains images and library for the manual
 
  - THDM_EWPOS/DOXYCONF: configuration file for doxygen
 
  - THDM_EWPOS/makefile: Makefile for the compilation of the library and the example programs
 
- - THDM_EWPOS/README.txt: instructions and mainpage of the documentation
+ - THDM_EWPOS/README.md: instructions and mainpage of the documentation
 

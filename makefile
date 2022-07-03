@@ -111,8 +111,6 @@ DOXYCOMMAND = doxygen
 
 DOC :
 	$(DOXYCOMMAND) DOXYCONF
-	cd $(PROJDIR)/Doc/latex && make
-	cp $(PROJDIR)/Doc/latex/refman.pdf $(PROJDIR)/Literature/Manual.pdf
 
 
 $(EXAMPLEOBJECTS): %.o : %.F

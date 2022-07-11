@@ -35,6 +35,7 @@ If you are publishing results obtained with THDM_EWPOS please also cite the foll
 
 - ["Two-loop corrections to the ρ parameter in Two-Higgs-Doublet Models"](https://arxiv.org/abs/1607.04610) by Stephan Hessenberger and Wolfgang Hollik,
 - ["Two-Loop Corrections to Electroweak Precision Observables in Two-Higgs-Doublet-Models"](https://mediatum.ub.tum.de/1415546) by Stephan Hessenberger.
+- ["Two-loop improved predictions for MW and sin2θeff in Two-Higgs-Doublet Models"](https://arxiv.org/abs/2207.03845) by Stephan Hessenberger and Wolfgang Hollik.
 
 The whole structure of THDM_EWPOS is heavily inspired by the Fortran routines from [FormCalc](http://www.feynarts.de/formcalc/).
 Especially the definition of the input parameter was adapted directly from these Fortran routines.
@@ -44,12 +45,6 @@ THDM_EWPOS is free software: you can redistribute it and/or modify it under the 
 THDM_EWPOS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with THDM_EWPOS. If not, see <https://www.gnu.org/licenses/>. 
-
-If you are publishing results obtained with THDM_EWPOS please also cite the following literature
-
-- ["Two-loop corrections to the ρ parameter in Two-Higgs-Doublet Models"](https://arxiv.org/abs/1607.04610) by Stephan Hessenberger and Wolfgang Hollik,
-- ["Two-Loop Corrections to Electroweak Precision Observables in Two-Higgs-Doublet-Models"](https://mediatum.ub.tum.de/1415546) by Stephan Hessenberger.
-- Two-loop improved predictions for MW and the effective leptonic mixing angle in Two-Higgs-doublet-models by Stephan Hessenberger and Wolfgang Hollik
 
 Installation
 ============
